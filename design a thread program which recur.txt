@@ -1,0 +1,57 @@
+design a thread program which recursively creates a thread in a thread function mu,ber in function the number of recursive calls are input from keyboard
+
+
+•  Takes the number of recursive calls (thread levels) as keyboard input, not command-line.
+•  Recursively creates a new thread from inside each thread.
+•  Each thread prints its thread ID and the current recursion number.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+// Thread function that recursively creates another thread
+void *thread_function(void *arg) {
+    int n = *(int *)arg; // current depth
+    pthread_t tid;
+    int next = n - 1;
+
+    // Print thread ID and current number
+    printf("Thread ID: %lu | Level: %d\n", pthread_self(), n);
+
+    // Base condition — stop when n <= 1
+    if (n <= 1)
+        return NULL;
+
+    // Create the next thread recursively
+    if (pthread_create(&tid, NULL, thread_function, &next) != 0) {
+        perror("pthread_create failed");
+        exit(1);
+    }
+
+    // Wait for the child thread to complete
+    pthread_join(tid, NULL);
+    return NULL;
+}
+
+int main() {
+    int n;
+    pthread_t tid;
+    printf("Enter number of recursive thread calls: ");
+    scanf("%d", &n);
+
+    if (n <= 0) {
+        printf("Number must be positive.\n");
+        return 1;
+    }
+
+    // Start the recursive chain
+    if (pthread_create(&tid, NULL, thread_function, &n) != 0) {
+        perror("pthread_create failed");
+        return 1;
+    }
+
+    pthread_join(tid, NULL);
+    printf("All threads completed.\n");
+    return 0;
+}
+
